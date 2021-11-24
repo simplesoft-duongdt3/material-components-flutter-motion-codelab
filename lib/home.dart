@@ -714,6 +714,7 @@ class _ReplyFabState extends State<_ReplyFab>
     with SingleTickerProviderStateMixin {
   // TODO: Add Fade through transition between compose and reply FAB (Motion)
   static const double _mobileFabDimension = 56;
+  static final fabKey = UniqueKey();
 
   @override
   Widget build(BuildContext context) {
@@ -724,15 +725,19 @@ class _ReplyFabState extends State<_ReplyFab>
       selector: (context, emailStore) => emailStore.onMailView,
       builder: (context, onMailView, child) {
         // TODO: Add Fade through transition between compose and reply FAB (Motion)
-        final fabSwitcher = onMailView
-            ? const Icon(
-                Icons.reply_all,
-                color: Colors.black,
-              )
-            : const Icon(
-                Icons.create,
-                color: Colors.black,
-              );
+        final fabSwitcher = _FadeThroughTransitionSwitcher(
+          fillColor: Colors.transparent,
+          child: onMailView
+              ? Icon(
+                  Icons.reply_all,
+                  key: fabKey,
+                  color: Colors.black,
+                )
+              : const Icon(
+                  Icons.create,
+                  color: Colors.black,
+                ),
+        );
         final tooltip = onMailView ? 'Reply' : 'Compose';
 
         return OpenContainer(
@@ -769,7 +774,7 @@ class _ReplyFabState extends State<_ReplyFab>
       CircleBorder circleFabBorder,
       String tooltip,
       BuildContext context,
-      Icon fabSwitcher,
+      Widget fabSwitcher,
       void Function() openContainerCallBack) {
     return Material(
       color: theme.colorScheme.secondary,
@@ -800,3 +805,27 @@ class _ReplyFabState extends State<_ReplyFab>
 }
 
 // TODO: Add Fade through transition between compose and reply FAB (Motion)
+class _FadeThroughTransitionSwitcher extends StatelessWidget {
+  const _FadeThroughTransitionSwitcher({
+    required this.fillColor,
+    required this.child,
+  });
+
+  final Widget child;
+  final Color fillColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return PageTransitionSwitcher(
+      transitionBuilder: (child, animation, secondaryAnimation) {
+        return FadeThroughTransition(
+          fillColor: fillColor,
+          child: child,
+          animation: animation,
+          secondaryAnimation: secondaryAnimation,
+        );
+      },
+      child: child,
+    );
+  }
+}
