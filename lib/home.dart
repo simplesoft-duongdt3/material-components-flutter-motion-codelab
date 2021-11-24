@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:animations/animations.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -734,43 +735,66 @@ class _ReplyFabState extends State<_ReplyFab>
               );
         final tooltip = onMailView ? 'Reply' : 'Compose';
 
-        // TODO: Add Container Transform from FAB to compose email page (Motion)
-        return Material(
-          color: theme.colorScheme.secondary,
-          shape: circleFabBorder,
-          child: Tooltip(
-            message: tooltip,
-            child: InkWell(
-              customBorder: circleFabBorder,
-              onTap: () {
-                Provider.of<EmailStore>(
-                  context,
-                  listen: false,
-                ).onCompose = true;
-
-                Navigator.of(context).push(
-                  PageRouteBuilder(
-                    pageBuilder: (
-                      BuildContext context,
-                      Animation<double> animation,
-                      Animation<double> secondaryAnimation,
-                    ) {
-                      return const ComposePage();
-                    },
-                  ),
-                );
-              },
-              child: SizedBox(
-                height: _mobileFabDimension,
-                width: _mobileFabDimension,
-                child: Center(
-                  child: fabSwitcher,
-                ),
-              ),
-            ),
-          ),
+        return OpenContainer(
+          openBuilder: (context, closedContainer) {
+            return const ComposePage();
+          },
+          openColor: theme.cardColor,
+          onClosed: (success) {
+            Provider.of<EmailStore>(
+              context,
+              listen: false,
+            ).onCompose = false;
+          },
+          closedShape: circleFabBorder,
+          closedColor: theme.colorScheme.secondary,
+          closedElevation: 6,
+          closedBuilder: (context, openContainerCallBack) {
+            return _buildFab(
+              theme,
+              circleFabBorder,
+              tooltip,
+              context,
+              fabSwitcher,
+              openContainerCallBack,
+            );
+          },
         );
       },
+    );
+  }
+
+  Material _buildFab(
+      ThemeData theme,
+      CircleBorder circleFabBorder,
+      String tooltip,
+      BuildContext context,
+      Icon fabSwitcher,
+      void Function() openContainerCallBack) {
+    return Material(
+      color: theme.colorScheme.secondary,
+      shape: circleFabBorder,
+      child: Tooltip(
+        message: tooltip,
+        child: InkWell(
+          customBorder: circleFabBorder,
+          onTap: () {
+            Provider.of<EmailStore>(
+              context,
+              listen: false,
+            ).onCompose = true;
+
+            openContainerCallBack();
+          },
+          child: SizedBox(
+            height: _mobileFabDimension,
+            width: _mobileFabDimension,
+            child: Center(
+              child: fabSwitcher,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
